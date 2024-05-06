@@ -1,0 +1,455 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: May 06, 2024 at 07:40 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `housing_demo1`
+--
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `bedroom` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.Bedroom >= offcampushousing.Bedrooms AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `budget` (IN `i_d` INT(11))  DETERMINISTIC SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.Budget >= offcampushousing.Price
+AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `date` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE DATEDIFF(offcampushousing.MoveinDate,offcampuspreferences.MoveinDate) <=15 AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `electric` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.Electric = offcampushousing.Electric AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `laundry` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.Laundry = offcampushousing.Laundry AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `location` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.Location >= offcampushousing.Location AND offcampuspreferences.id = i_d$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `MatchOffCampus` (IN `student_budget` INT, IN `student_location` VARCHAR(50), IN `student_bedroom` INT, IN `student_bathroom` INT, IN `student_wifi` VARCHAR(20), IN `student_electric` VARCHAR(20), IN `student_laundry` VARCHAR(20), IN `student_move_in_date` DATE)   BEGIN
+    SELECT
+        oh.pid AS housing_pid,
+        COUNT(
+            CASE
+                WHEN student_budget >= oh.Price THEN 1
+                ELSE NULL
+            END
+        ) AS budget_match,
+        CASE
+            WHEN student_location >= oh.Location THEN 1
+            ELSE 0
+        END AS location_match,
+        CASE
+            WHEN student_bedroom = oh.Bedrooms THEN 1
+            ELSE 0
+        END AS bedroom_match,
+        CASE
+            WHEN student_bathroom = oh.Bathrooms THEN 1
+            ELSE 0
+        END AS bathroom_match,
+        CASE
+            WHEN student_wifi = oh.Wifi THEN 1
+            ELSE 0
+        END AS wifi_match,
+        CASE
+            WHEN student_electric = oh.Electric THEN 1
+            ELSE 0
+        END AS electric_match,
+        CASE
+            WHEN student_laundry = oh.Laundry THEN 1
+            ELSE 0
+        END AS laundry_match,
+        COUNT(
+            CASE
+                WHEN student_move_in_date <= oh.MoveinDate THEN 1
+                ELSE NULL
+            END
+        ) AS move_in_date_match
+    FROM
+        offcampushousing AS oh
+    WHERE
+        oh.Price <= student_budget
+    GROUP BY
+        housing_pid
+    ORDER BY
+        budget_match DESC,
+        location_match DESC,
+        bedroom_match DESC,
+        bathroom_match DESC,
+        wifi_match DESC,
+        electric_match DESC,
+        laundry_match DESC,
+        move_in_date_match DESC
+    LIMIT 3;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `MatchRoommatesAndHousing` (IN `student_budget` INT, IN `student_location` VARCHAR(50), IN `student_bedroom` INT, IN `student_bathroom` INT, IN `student_wifi` VARCHAR(20), IN `student_electric` VARCHAR(20), IN `student_laundry` VARCHAR(20), IN `student_move_in_date` DATE, IN `student_gender` CHAR(20), IN `student_language` CHAR(20), IN `student_age` VARCHAR(20), IN `student_smoke` CHAR(20), IN `student_activetime` CHAR(20))   BEGIN
+    SELECT
+        oh.pid AS housing_pid,
+        COUNT(
+            CASE
+                WHEN student_budget >= oh.Price THEN 1
+                ELSE NULL
+            END
+        ) AS budget_match,
+        CASE
+            WHEN student_location >= oh.Location THEN 1
+            ELSE 0
+        END AS location_match,
+        CASE
+            WHEN student_bedroom = oh.Bedrooms THEN 1
+            ELSE 0
+        END AS bedroom_match,
+        CASE
+            WHEN student_bathroom = oh.Bathrooms THEN 1
+            ELSE 0
+        END AS bathroom_match,
+        CASE
+            WHEN student_wifi = oh.Wifi THEN 1
+            ELSE 0
+        END AS wifi_match,
+        CASE
+            WHEN student_electric = oh.Electric THEN 1
+            ELSE 0
+        END AS electric_match,
+        CASE
+            WHEN student_laundry = oh.Laundry THEN 1
+            ELSE 0
+        END AS laundry_match,
+        COUNT(
+            CASE
+                WHEN student_move_in_date <= oh.MoveinDate THEN 1
+                ELSE NULL
+            END
+        ) AS move_in_date_match,
+        (COUNT(
+            CASE
+                WHEN student_budget >= oh.Price THEN 1
+                ELSE NULL
+            END
+        ) +
+        CASE
+            WHEN student_location = oh.Location THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN student_bedroom = oh.Bedrooms THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN student_bathroom = oh.Bathrooms THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN student_wifi = oh.Wifi THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN student_electric = oh.Electric THEN 1
+            ELSE 0
+        END +
+        CASE
+            WHEN student_laundry = oh.Laundry THEN 1
+            ELSE 0
+        END +
+        COUNT(
+            CASE
+                WHEN student_move_in_date <= oh.MoveinDate THEN 1
+                ELSE NULL
+            END
+        )) AS total_matches
+    FROM
+        offcampushousing AS oh
+    JOIN
+        roommatepreferences AS rp
+    ON
+        rp.gender = student_gender
+        AND rp.language = student_language
+        AND rp.age = student_age
+        AND rp.smoke = student_smoke
+        AND rp.activetime = student_activetime
+    WHERE
+        oh.Price <= student_budget
+        AND oh.Bedrooms >= student_bedroom
+    GROUP BY
+        housing_pid
+    ORDER BY
+        total_matches DESC
+    LIMIT 3;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `wifi` (IN `i_d` INT(11))   SELECT offcampushousing.pid
+FROM offcampushousing 
+JOIN offcampuspreferences
+WHERE offcampuspreferences.wifi = offcampushousing.wifi
+AND offcampuspreferences.id = i_d$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `apartmentpreferences`
+--
+
+CREATE TABLE `apartmentpreferences` (
+  `id` int(11) NOT NULL,
+  `bedroom` char(20) NOT NULL COMMENT 'input: studio, 1 bedroom, loft, 2 bd,3bd,4bd',
+  `bathroom` int(10) NOT NULL COMMENT 'input: 1 or 2\r\n',
+  `laundry` char(20) NOT NULL COMMENT 'input: laundry hookups or offsite\r\n',
+  `family` char(20) NOT NULL COMMENT 'input: yes or no to the question do you have a family?',
+  `education_progress` char(20) NOT NULL COMMENT 'input: sophomore, juniors, senior, graduate'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `dormpreferences`
+--
+
+CREATE TABLE `dormpreferences` (
+  `id` int(11) NOT NULL,
+  `education_progress` char(20) NOT NULL COMMENT 'input: first year, transfer, or returning student\r\n',
+  `room_type` char(20) NOT NULL COMMENT 'input: double, single, or suite',
+  `bathroom_type` char(20) NOT NULL COMMENT 'input: community or private\r\n',
+  `floor_type` char(20) NOT NULL COMMENT 'input: co-ed, single gender, or gender inclusive',
+  `kitchen` char(20) NOT NULL COMMENT 'input: yes or no to if they want a community kitchen',
+  `open_fall` char(20) NOT NULL COMMENT 'input: yes or no to if they need it to be open fall break',
+  `open_winter` char(20) NOT NULL COMMENT 'input: yes or no to if they need it to be open winter break',
+  `open_spring` char(20) NOT NULL COMMENT 'input: yes or no to if they need it to be open spring break'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `offcampushousing`
+--
+
+CREATE TABLE `offcampushousing` (
+  `id` int(11) NOT NULL,
+  `pid` int(11) NOT NULL,
+  `Price` int(50) NOT NULL,
+  `Location` varchar(50) NOT NULL,
+  `Bedrooms` int(10) NOT NULL,
+  `Bathrooms` int(10) NOT NULL,
+  `Wifi` varchar(20) NOT NULL,
+  `Electric` varchar(20) NOT NULL,
+  `Laundry` varchar(20) NOT NULL,
+  `MoveinDate` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `offcampushousing`
+--
+
+INSERT INTO `offcampushousing` (`id`, `pid`, `Price`, `Location`, `Bedrooms`, `Bathrooms`, `Wifi`, `Electric`, `Laundry`, `MoveinDate`) VALUES
+(7, 1, 500, '4', 2, 2, 'yes', 'no', 'yes', '2024-06-01'),
+(7, 3, 700, '2', 3, 2, 'yes', 'no', 'no', '2024-06-01'),
+(7, 4, 600, '1', 1, 1, 'yes', 'yes', 'yes', '2024-04-23'),
+(7, 5, 400, '2', 2, 1, 'yes', 'yes', 'yes', '2024-08-01');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `offcampuspreferences`
+--
+
+CREATE TABLE `offcampuspreferences` (
+  `id` int(11) NOT NULL,
+  `Budget` int(10) NOT NULL,
+  `Location` varchar(50) NOT NULL,
+  `Bedroom` int(10) NOT NULL,
+  `Bathroom` int(10) NOT NULL,
+  `Wifi` varchar(20) NOT NULL,
+  `Electric` varchar(20) NOT NULL,
+  `Laundry` varchar(20) NOT NULL,
+  `MoveinDate` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `offcampuspreferences`
+--
+
+INSERT INTO `offcampuspreferences` (`id`, `Budget`, `Location`, `Bedroom`, `Bathroom`, `Wifi`, `Electric`, `Laundry`, `MoveinDate`) VALUES
+(1, 400, '1', 1, 2, 'no', 'no', 'yes', '2024-04-24'),
+(8, 600, '2', 1, 1, 'yes', 'yes', 'no', '2024-06-01');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `roommatepreferences`
+--
+
+CREATE TABLE `roommatepreferences` (
+  `id` int(11) NOT NULL,
+  `gender` char(20) NOT NULL,
+  `language` char(20) NOT NULL,
+  `age` varchar(20) NOT NULL,
+  `smoke` char(20) NOT NULL,
+  `activetime` char(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `roommatepreferences`
+--
+
+INSERT INTO `roommatepreferences` (`id`, `gender`, `language`, `age`, `smoke`, `activetime`) VALUES
+(1, 'Female', 'English', '21', 'No', 'Nightowl');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_login`
+--
+
+CREATE TABLE `student_login` (
+  `id` int(11) NOT NULL,
+  `fname` varchar(50) NOT NULL,
+  `lname` varchar(50) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` varchar(50) NOT NULL,
+  `role` varchar(10) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `student_login`
+--
+
+INSERT INTO `student_login` (`id`, `fname`, `lname`, `email`, `password`, `role`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Casey', 'Jensen', 'cassandra.jensen03@gmail.com', 'cj', 'Student', '2024-03-21 08:43:05', '2024-03-21 08:43:42', '2024-03-21 08:44:00'),
+(7, 'Casey', 'Jensen', 'cj@gmail.com', 'cj', 'UI Agent', '2024-04-17 05:29:19', '2024-04-17 05:29:19', '2024-04-17 05:29:19'),
+(8, 'spencer', 'kinder', 'sk@gmail.com', 'sk', 'Student', '2024-04-18 05:48:40', '2024-04-18 05:48:40', '2024-04-18 05:48:40'),
+(10, 'Cassandra', 'Jensen', 'Jens6610@vandals.uidaho.edu', '$2y$10$Ot3ZWrPwUUg6AlWXdq469O1ovkZvXLnwHWnyDIFIX36', 'Student', '2024-05-06 05:15:48', '2024-05-06 05:15:48', NULL),
+(11, 'Cassandra', 'Jensen', 'cj@vandals.uidaho.edu', '$2y$10$GBKfHU.boGMcmcM42yCGBOtvaf1eGM5TWkFT0DhNgbM', 'Student', '2024-05-06 05:18:39', '2024-05-06 05:18:39', NULL),
+(12, 'Cassandra', 'Jensen', 'aj@vandals.uidaho.edu', '$2y$10$aSNURUQyXmcAnYsztPqoO.xbugQnl8LMjHN4ukXML2n', 'Student', '2024-05-06 06:42:59', '2024-05-06 06:42:59', NULL);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `apartmentpreferences`
+--
+ALTER TABLE `apartmentpreferences`
+  ADD KEY `for.apart` (`id`);
+
+--
+-- Indexes for table `dormpreferences`
+--
+ALTER TABLE `dormpreferences`
+  ADD KEY `for.dorm` (`id`);
+
+--
+-- Indexes for table `offcampushousing`
+--
+ALTER TABLE `offcampushousing`
+  ADD PRIMARY KEY (`pid`),
+  ADD KEY `for.listing` (`id`);
+
+--
+-- Indexes for table `offcampuspreferences`
+--
+ALTER TABLE `offcampuspreferences`
+  ADD KEY `for.pref` (`id`);
+
+--
+-- Indexes for table `roommatepreferences`
+--
+ALTER TABLE `roommatepreferences`
+  ADD KEY `for.roommate` (`id`);
+
+--
+-- Indexes for table `student_login`
+--
+ALTER TABLE `student_login`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `student_login`
+--
+ALTER TABLE `student_login`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `apartmentpreferences`
+--
+ALTER TABLE `apartmentpreferences`
+  ADD CONSTRAINT `for.apart` FOREIGN KEY (`id`) REFERENCES `student_login` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints for table `dormpreferences`
+--
+ALTER TABLE `dormpreferences`
+  ADD CONSTRAINT `for.dorm` FOREIGN KEY (`id`) REFERENCES `student_login` (`id`);
+
+--
+-- Constraints for table `offcampushousing`
+--
+ALTER TABLE `offcampushousing`
+  ADD CONSTRAINT `for.listing` FOREIGN KEY (`id`) REFERENCES `student_login` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints for table `offcampuspreferences`
+--
+ALTER TABLE `offcampuspreferences`
+  ADD CONSTRAINT `for.pref` FOREIGN KEY (`id`) REFERENCES `student_login` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints for table `roommatepreferences`
+--
+ALTER TABLE `roommatepreferences`
+  ADD CONSTRAINT `for.roommate` FOREIGN KEY (`id`) REFERENCES `student_login` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+DELIMITER $$
+--
+-- Events
+--
+CREATE DEFINER=`root`@`localhost` EVENT `Match` ON SCHEDULE EVERY 1 WEEK STARTS '2024-05-10 14:01:49' ENDS '2025-06-20 14:01:49' ON COMPLETION NOT PRESERVE ENABLE DO CALL MatchOffCampus()$$
+
+DELIMITER ;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
