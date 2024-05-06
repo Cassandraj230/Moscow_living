@@ -1,0 +1,58 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/css.css to edit this template
+*/
+/* 
+    Created on : Mar 5, 2024, 7:47:37 PM
+    Author     : cassandra
+*/
+
+
+body, html {
+   text-align: center;  
+   height: 100%;
+   font-family: "Inconsolata", sans-serif;
+   
+}
+
+.nav ul{
+    background-color: black!important;
+}
+
+.row {
+    padding:8px 16px!important;
+    color:black!important;background-color:#f6f7f8!important;
+}
+
+.col {
+    width:24.99999%;
+}
+
+.button {
+    width:100%;
+    display:block;
+    color:black!important;background-color:#f6f7f8!important;
+
+}
+
+.bgimg {
+    background-position: center;
+    background-size: cover;
+    min-height: 100%;
+}
+.col4{
+    align-content: center
+       
+}
+.container-lg{
+    width: 785px;
+    height: 500px;
+    background-color: lightgrey!important;
+    align-content: center;
+}
+.container-3{
+    width: 800px;
+    height: 500px;
+    background-color: lightgrey!important;
+    align-content: center;
+}
